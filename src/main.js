@@ -2,7 +2,7 @@ const core = require('@actions/core')
 const { mkdir, cp, readFile } = require('node:fs/promises')
 const { resolve, join } = require('node:path')
 const { platform } = require('node:os')
-const { execSync } = require('node:child_process')
+const { execSync, exec } = require('node:child_process')
 const { inject } = require('postject')
 
 /**
@@ -37,15 +37,21 @@ async function run() {
     nodeDest += '.exe'
   }
 
-  await cp(pathToNode, nodeDest)
+  // await cp(pathToNode, nodeDest)
 
   // remove existing code signature on node binary
   if (os === 'win32') {
+    execSync(
+      `node -e "require('fs').copyFileSync(process.execPath, '${executableName}')"`
+    )
     const signtool =
       '%programfiles(x86)%/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe'
     execSync(`"${signtool}" remove /s ${nodeDest}`)
-  } else if (os === 'darwin') {
-    execSync(`codesign --remove-signature ${nodeDest}`)
+  } else {
+    execSync('cp $(command - v node) ${nodeDest}')
+    if (os === 'darwin') {
+      execSync(`codesign --remove-signature ${nodeDest}`)
+    }
   }
   const seaConfigContents = await readFile(seaJsonPath, {
     encoding: 'utf8'
@@ -62,8 +68,6 @@ async function run() {
   }
   const resourceBlob = await readFile(blobPath)
 
-  core.info(`resourceBlob: ${resourceBlob}`)
-  core.info(`nodeDest: ${nodeDest}`)
   core.info('Injecting the resource blob into the binary...')
   await inject(nodeDest, 'NODE_SEA_BLOB', resourceBlob, opts)
 }
