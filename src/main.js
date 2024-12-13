@@ -48,7 +48,7 @@ async function run() {
       '%programfiles(x86)%/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe'
     execSync(`"${signtool}" remove /s ${nodeDest}`)
   } else {
-    execSync(`cp $(command - v node) ${nodeDest}`)
+    execSync(`cp ${pathToNode} ${nodeDest}`)
     if (os === 'darwin') {
       execSync(`codesign --remove-signature ${nodeDest}`)
     }
