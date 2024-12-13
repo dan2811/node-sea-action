@@ -61,6 +61,10 @@ async function run() {
     opts.machoSegmentName = 'NODE_SEA'
   }
   const resourceBlob = await readFile(blobPath)
+
+  core.info(`resourceBlob: ${resourceBlob}`)
+  core.info(`nodeDest: ${nodeDest}`)
+  core.info('Injecting the resource blob into the binary...')
   await inject(nodeDest, 'NODE_SEA_BLOB', resourceBlob, opts)
 }
 
